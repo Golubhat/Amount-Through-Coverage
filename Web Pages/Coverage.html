@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coverage</title>
+    <style>
+        body {
+            background-color: grey;
+            color: black;
+            font-weight: bold;
+            font-size: 25px;
+        }
+
+        input {
+            background-color: goldenrod;
+            color: maroon;
+            font-size: 20px;
+        }
+
+        button {
+            background-color: rebeccapurple;
+            color: aqua;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Enter no: of players</p>
+</body>
+<script>
+    var playerNumber;
+    var playerData = [];
+
+    const size = 20;
+    var CoverageBoard = [];
+
+    function calculateArea(this_player, areaToFill, y, x) {
+        if (this_player.circuit == 0) {
+            if (((this_player.startPosition.y == size - 1 && this_player.endPosition.x == size - 1) || (this_player.startPosition.x == size - 1 && this_player.endPosition.y == size - 1)) && (y == 0 || x == 0))
+                this_player.circuit = 1;
+            else if (((this_player.startPosition.y == 0 && this_player.endPosition.x == size - 1) || (this_player.startPosition.x == size - 1 && this_player.endPosition.y == 0)) && (y == size - 1 || x == 0))
+                this_player.circuit = 1;
+            else if (((this_player.startPosition.y == 0 && this_player.endPosition.x == 0) || (this_player.startPosition.x == 0 && this_player.endPosition.y == 0)) && (y == size - 1 || x == size - 1))
+                this_player.circuit = 1;
+            else if (((this_player.startPosition.y == size - 1 && this_player.endPosition.x == 0) || (this_player.startPosition.x == 0 && this_player.endPosition.y == size - 1)) && (y == 0 || x == size - 1))
+                this_player.circuit = 1;
+
+            else if ((this_player.startPosition.y == size - 1 && this_player.endPosition.y == size - 1) && (y == 0 || x == 0 || x == size - 1))
+                this_player.circuit = 1;
+            else if ((this_player.startPosition.x == size - 1 && this_player.endPosition.x == size - 1) && (y == 0 || y == size - 1 || x == 0))
+                this_player.circuit = 1;
+            else if ((this_player.startPosition.y == 0 && this_player.endPosition.y == 0) && (y == size - 1 || x == 0 || x == size - 1))
+                this_player.circuit = 1;
+            else if ((this_player.startPosition.x == 0 && this_player.endPosition.x == 0) && (y == 0 || y == size - 1 || x == size - 1))
+                this_player.circuit = 1;
+        }
+        areaToFill[size * y + x] = 1;
+        if (y < size - 1) {
+            if (areaToFill[size * (y + 1) + x] == 0)
+                calculateArea(this_player, areaToFill, y + 1, x);
+        }
+        if (x < size - 1) {
+            if (areaToFill[size * y + (x + 1)] == 0)
+                calculateArea(this_player, areaToFill, y, x + 1);
+        }
+        if (y > 0) {
+            if (areaToFill[size * (y - 1) + x] == 0)
+                calculateArea(this_player, areaToFill, y - 1, x);
+        }
+        if (x > 0) {
+            if (areaToFill[size * y + (x - 1)] == 0)
+                calculateArea(this_player, areaToFill, y, x - 1);
+        }
+
+    }
+
+    let pN = document.createElement("input");
+    pN.type = "number";
+    pN.value = 2;
+    pN.min = 1;
+    pN.onkeydown = function () { return false; }
+    document.body.appendChild(pN);
+
+    document.body.appendChild(document.createElement("br"));
+    document.body.appendChild(document.createElement("br"));
+
+    let pD = document.createElement("button");
+    pD.innerText = "Proceed";
+    document.body.appendChild(pD);
+
+    pD.addEventListener("click", function () {
+        document.body.removeChild(pD);
+        pN.readOnly = true;
+        playerNumber = pN.value;
+        for (let i = 1; i <= playerNumber; i++) {
+            let sno = document.createElement("div");
+            sno.innerText = "Player " + i + ",";
+            sno.style.marginBottom = "20px";
+            document.body.appendChild(sno);
+
+            let name = document.createElement("div");
+            name.innerHTML = "Enter your name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+            name.style.marginBottom = "10px";
+            document.body.appendChild(name);
+
+            let nameValue = document.createElement("input");
+            nameValue.id = "name" + i;
+            nameValue.maxLength = 20;
+            name.appendChild(nameValue);
+
+            let symbol = document.createElement("div");
+            symbol.innerHTML = "Enter your symbol&nbsp;&nbsp;";
+            symbol.style.marginBottom = "10px";
+            document.body.appendChild(symbol);
+
+            let symbolValue = document.createElement("input");
+            symbolValue.id = "symbol" + i;
+            symbolValue.maxLength = 1;
+            symbol.appendChild(symbolValue);
+
+            document.body.appendChild(document.createElement("br"));
+        }
+
+        let start = document.createElement("button");
+        start.innerText = "Start";
+        document.body.appendChild(start);
+
+        start.addEventListener("click", function () {
+            for (let i = 1; i <= playerNumber; i++) {
+                if (document.getElementById("name" + i).value === "") {
+                    alert("All names must be filled");
+                    return;
+                }
+                if (document.getElementById("symbol" + i).value === "") {
+                    alert("All symbols must be filled");
+                    return;
+                }
+            }
+            let reset = false;
+            for (let i = 1; i <= playerNumber; i++) {
+                if (document.getElementById("name" + i).value === "")
+                    continue;
+                for (let j = i + 1; j <= playerNumber; j++) {
+                    if (document.getElementById("name" + i).value === document.getElementById("name" + j).value) {
+                        document.getElementById("name" + j).value = "";
+                        reset = true;
+                    }
+                }
+            }
+            for (let i = 1; i <= playerNumber; i++) {
+                if (document.getElementById("symbol" + i).value === "")
+                    continue;
+                for (let j = i + 1; j <= playerNumber; j++) {
+                    if (document.getElementById("symbol" + i).value === document.getElementById("symbol" + j).value) {
+                        document.getElementById("symbol" + j).value = "";
+                        reset = true;
+                    }
+                }
+            }
+            if (reset) {
+                alert("All names & symbols must be unique");
+                return;
+            }
+            for (let i = 1; i <= playerNumber; i++)
+                playerData.push({ name: document.getElementById("name" + i).value, symbol: document.getElementById("symbol" + i).value, amount: undefined, symbolsUsed: 0, areaCovered: 0, status: -1, circuit: undefined, startPosition: { x: undefined, y: undefined }, endPosition: { x: undefined, y: undefined } });
+
+            alert("The Coverage starts now!!!!!");
+            document.body.innerHTML = "";
+
+            let turn = 1;
+            let turnMessage = document.createElement("p");
+            turnMessage.innerText = "Player " + turn + ", " + playerData[turn - 1].name + "'s turn: ------------------------- place your symbol (" + playerData[turn - 1].symbol + ")";
+            document.body.appendChild(turnMessage);
+
+            let Container = document.createElement("div");
+            let ContainerStyle = "display: grid; width: " + (50 * size) + "px; height: " + (50 * size) + "px; grid-template-columns: ";
+            for (let i = 0; i < size; i++)
+                ContainerStyle += "auto ";
+            Container.style = ContainerStyle;
+
+            let CoverageBoard_filled = [];
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++)
+                    CoverageBoard_filled.push(false);
+            }
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    CoverageBoard.push(document.createElement("div"));
+                    CoverageBoard[size * i + j].style = "border: 2px solid black; height: 30px; width: 20px; padding: 10px 15px";
+                    CoverageBoard[size * i + j].addEventListener("click", function () {
+                        if (CoverageBoard_filled[size * i + j])
+                            return;
+                        let nextTurn = false;
+                        if (playerData[turn - 1].status == 0) {
+                            let adjacentWithSymbol = false;
+                            if (i != 0)
+                                adjacentWithSymbol = adjacentWithSymbol || (CoverageBoard[size * (i - 1) + j].innerText === playerData[turn - 1].symbol);
+                            if (i != size - 1)
+                                adjacentWithSymbol = adjacentWithSymbol || (CoverageBoard[size * (i + 1) + j].innerText === playerData[turn - 1].symbol);
+                            if (j != 0)
+                                adjacentWithSymbol = adjacentWithSymbol || (CoverageBoard[size * i + (j - 1)].innerText === playerData[turn - 1].symbol);
+                            if (j != size - 1)
+                                adjacentWithSymbol = adjacentWithSymbol || (CoverageBoard[size * i + (j + 1)].innerText === playerData[turn - 1].symbol);
+                            if (adjacentWithSymbol) {
+                                playerData[turn - 1].symbolsUsed++;
+                                CoverageBoard[size * i + j].innerText = playerData[turn - 1].symbol;
+                                CoverageBoard_filled[size * i + j] = true;
+                                if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
+                                    playerData[turn - 1].endPosition.x = j;
+                                    playerData[turn - 1].endPosition.y = i;
+                                    playerData[turn - 1].status = 1;
+                                }
+                                nextTurn = true;
+                            }
+                        }
+                        else if (playerData[turn - 1].status == -1 && (i == 0 || i == size - 1 || j == 0 || j == size - 1)) {
+                            playerData[turn - 1].symbolsUsed++;
+                            CoverageBoard[size * i + j].innerText = playerData[turn - 1].symbol;
+                            CoverageBoard_filled[size * i + j] = true;
+                            playerData[turn - 1].startPosition.x = j;
+                            playerData[turn - 1].startPosition.y = i;
+                            playerData[turn - 1].status = 0;
+                            nextTurn = true;
+                        }
+                        if (playerData[turn - 1].status == 1) {
+                            let areaToFill = [], y = undefined, x = undefined;
+                            for (let i = 0; i < size; i++) {
+                                for (let j = 0; j < size; j++) {
+                                    if (CoverageBoard[size * i + j].innerText === playerData[turn - 1].symbol)
+                                        areaToFill.push(-1);
+                                    else
+                                        areaToFill.push(0);
+                                }
+                            }
+                            playerData[turn - 1].circuit = 0;
+                            do {
+                                y = Math.floor(Math.random() * size);
+                                x = Math.floor(Math.random() * size);
+                            } while (areaToFill[size * y + x] != 0);
+                            calculateArea(playerData[turn - 1], areaToFill, y, x);
+
+                            for (let i = 0; i < size; i++) {
+                                for (let j = 0; j < size; j++) {
+                                    if (areaToFill[size * i + j] == 1)
+                                        playerData[turn - 1].areaCovered++;
+                                }
+                            }
+                            let verticalBorder = (playerData[turn - 1].startPosition.y == 0 && playerData[turn - 1].endPosition.y == size - 1) || (playerData[turn - 1].startPosition.y == size - 1 && playerData[turn - 1].endPosition.y == 0);
+                            let horizontalBorder = (playerData[turn - 1].startPosition.x == 0 && playerData[turn - 1].endPosition.x == size - 1) || (playerData[turn - 1].startPosition.x == size - 1 && playerData[turn - 1].endPosition.x == 0);
+                            if (verticalBorder || horizontalBorder)
+                                playerData[turn - 1].areaCovered = (playerData[turn - 1].areaCovered > (size * size) / 2) ? (size * size) - (playerData[turn - 1].areaCovered + playerData[turn - 1].symbolsUsed) : playerData[turn - 1].areaCovered;
+                            else
+                                playerData[turn - 1].areaCovered = (playerData[turn - 1].circuit == 1) ? (size * size) - (playerData[turn - 1].areaCovered + playerData[turn - 1].symbolsUsed) : playerData[turn - 1].areaCovered;
+
+                            let isOver = true;
+                            for (let i = 0; i < playerNumber; i++) {
+                                if (playerData[i].status != 1) {
+                                    isOver = false;
+                                    break;
+                                }
+                            }
+                            if (isOver) {
+                                TheEnd();
+                                return;
+                            }
+                        }
+                        if (nextTurn) {
+                            do {
+                                turn = (turn == playerNumber) ? 1 : turn + 1;
+                            }
+                            while (playerData[turn - 1].status == 1);
+                            turnMessage.innerText = "Player " + turn + ", " + playerData[turn - 1].name + "'s turn: ------------------------- place your symbol (" + playerData[turn - 1].symbol + ")";
+                        }
+                    });
+                    Container.appendChild(CoverageBoard[size * i + j]);
+                }
+            }
+            document.body.appendChild(Container);
+        });
+    });
+    function TheEnd() {
+        alert("The Coverage is over!!!!!");
+        document.body.appendChild(document.createElement("br"));
+        document.body.appendChild(document.createElement("br"));
+        document.body.appendChild(document.createElement("br"));
+        document.body.appendChild(document.createElement("br"));
+        let Sum_symbolsUsed = 0;
+        for (let i = 1; i <= playerNumber; i++) {
+            let this_player = document.createElement("div");
+            this_player.innerText = "Player " + i + ", " + playerData[i - 1].name + " (" + playerData[i - 1].symbol + ")";
+            this_player.style.marginBottom = "0px";
+            document.body.appendChild(this_player);
+
+            let area_covered = document.createElement("div");
+            area_covered.innerText = "Area Covered: " + playerData[i - 1].areaCovered;
+            area_covered.style.fontSize = "20px";
+            area_covered.style.marginBottom = "0px";
+            document.body.appendChild(area_covered);
+
+            let symbols_used = document.createElement("div");
+            symbols_used.innerText = "Symbols Used: " + playerData[i - 1].symbolsUsed;
+            symbols_used.style.fontSize = "20px";
+            symbols_used.style.marginBottom = "0px";
+            document.body.appendChild(symbols_used);
+            document.body.appendChild(document.createElement("br"));
+
+            Sum_symbolsUsed += playerData[i - 1].symbolsUsed;
+        }
+        let result = document.createElement("button");
+        result.innerText = "Check Result";
+        document.body.appendChild(result);
+        result.addEventListener("click", function () {
+            document.body.innerHTML = "";
+            if (Math.floor(Math.random() * 2) == 0) {
+                for (let i = 1; i <= playerNumber; i++) {
+                    playerData[i - 1].amount = Math.floor((playerData[i - 1].areaCovered * playerData[i - 1].symbolsUsed) / Sum_symbolsUsed);
+
+                    let this_player = document.createElement("p");
+                    this_player.innerText = "Amount given to Player " + i + ", " + playerData[i - 1].name + " = " + playerData[i - 1].amount;
+                    document.body.appendChild(this_player);
+                }
+            }
+            else {
+                for (let i = 1; i <= playerNumber; i++) {
+                    playerData[i - 1].amount = Math.floor((playerData[i - 1].areaCovered * Sum_symbolsUsed) / playerData[i - 1].symbolsUsed);
+
+                    let this_player = document.createElement("p");
+                    this_player.innerText = "Amount given to Player " + i + ", " + playerData[i - 1].name + " (" + playerData[i - 1].symbol + ")" + " = " + playerData[i - 1].amount;
+                    document.body.appendChild(this_player);
+                }
+            }
+
+            var saveByteArray = (function () {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                a.style = "display: none";
+                return function (data, name) {
+                    var blob = new Blob(data, { type: "octet/stream" }),
+                        url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = name;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                };
+            }());
+            let theData = [playerNumber];
+            for (let i = 0; i < playerNumber; i++) {
+                theData.push(playerData[i].name);
+                theData.push(playerData[i].symbol);
+                theData.push(playerData[i].amount);
+            }
+            saveByteArray([theData], "Players.dat");
+        });
+    }
+</script>
+
+</html>

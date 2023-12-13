@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicTacToe</title>
+    <style>
+        body {
+            background-color: grey;
+            color: black;
+            font-weight: bold;
+            font-size: 25px;
+        }
+
+        input {
+            background-color: goldenrod;
+            color: maroon;
+            font-size: 20px;
+        }
+
+        button {
+            background-color: rebeccapurple;
+            color: aqua;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Load the file "Players.dat"</p>
+    <input type="file" id="data" /><br><br>
+    <button id="read-data">Get Started</button>
+</body>
+<script>
+    var playerNumber;
+    var playerData = [];
+    var playerWins = [];
+
+    var Sno;
+    var Match = [];
+
+    document.querySelector("#read-data").addEventListener('click', function () {
+        if (document.querySelector("#data").value == '') {
+            console.log('No file selected');
+            return;
+        }
+        let file = document.querySelector("#data").files[0];
+        let reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function (e) {
+            let data = e.target.result.split(",");
+            playerNumber = Number(data[0]);
+            for (let i = 1; i <= playerNumber * 3; i += 3) {
+                playerData.push({ name: data[i], symbol: data[i + 1], amount: data[i + 2] });
+                playerWins.push(0);
+            }
+
+            Sno = 1;
+            for (let i = 1; i <= playerNumber; i++) {
+                for (let j = i + 1; j <= playerNumber; j++)
+                    Match.push({ opp1: i - 1, opp1_amount: playerData[i - 1].amount, opp2: j - 1, opp2_amount: playerData[j - 1].amount });
+            }
+
+            document.body.innerHTML = "";
+            let gameMessage = document.createElement("p");
+            gameMessage.innerHTML = "Player " + (Match[Sno - 1].opp1 + 1) + ", " + playerData[Match[Sno - 1].opp1].name + " will use " + playerData[Match[Sno - 1].opp1].symbol + "<br>" + "Player " + (Match[Sno - 1].opp2 + 1) + ", " + playerData[Match[Sno - 1].opp2].name + " will use " + playerData[Match[Sno - 1].opp2].symbol + "<br><br>" + "The Game between Player " + playerData[Match[Sno - 1].opp1].name + " & Player " + playerData[Match[Sno - 1].opp2].name + " has started !!!!!";
+            document.body.appendChild(gameMessage);
+
+            let start = document.createElement("button");
+            start.innerText = "Start";
+            start.addEventListener("click", function () {
+                TicTacToe_Game();
+            });
+            document.body.appendChild(start);
+        };
+        reader.onerror = function (e) {
+            console.log('Error : ' + e.type);
+        };
+    });
+
+    function NextMatch(TicTacToe_Board, TicTacToe_Board_filled, turnMessage) {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                TicTacToe_Board_filled[3 * i + j] = false;
+                TicTacToe_Board[3 * i + j].innerText = ' ';
+            }
+        }
+        if (Match[Sno - 1].opp1_amount != 0) {
+            turnMessage.innerText = playerData[Match[Sno - 1].opp1].name + "'s turn: (" + playerData[Match[Sno - 1].opp1].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp1_amount;
+            return 1;
+        }
+        else {
+            turnMessage.innerText = playerData[Match[Sno - 1].opp2].name + "'s turn: (" + playerData[Match[Sno - 1].opp2].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp2_amount;
+            return 2;
+        }
+    }
+    function TicTacToe_Game() {
+        document.body.innerHTML = "";
+
+        let side = 0;
+        let turn = 1;
+        let TicTacToe_Board_filled = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++)
+                TicTacToe_Board_filled.push(false);
+        }
+
+        let turnMessage = document.createElement("p");
+        turnMessage.innerText = playerData[Match[Sno - 1].opp1].name + "'s turn: (" + playerData[Match[Sno - 1].opp1].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp1_amount;
+        document.body.appendChild(turnMessage);
+
+        let Container = document.createElement("div");
+        let ContainerStyle = "display: grid; width: 600px; height: 600px; grid-template-columns: ";
+        for (let i = 0; i < 3; i++)
+            ContainerStyle += "auto ";
+        Container.style = ContainerStyle;
+        let TicTacToe_Board = [];
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                TicTacToe_Board.push(document.createElement("div"));
+                TicTacToe_Board[3 * i + j].style = "border: 2px solid black; width: 100px; height: 100px; padding: 50px 50px; font-size: 80px";
+                TicTacToe_Board[3 * i + j].addEventListener("click", function () {
+                    let gameDone = false;
+                    if (TicTacToe_Board_filled[3 * i + j])
+                        return;
+                    TicTacToe_Board_filled[3 * i + j] = true;
+
+                    if (turn == 1) {
+                        TicTacToe_Board[3 * i + j].innerText = playerData[Match[Sno - 1].opp1].symbol;
+                        Match[Sno - 1].opp1_amount--;
+                        if (Match[Sno - 1].opp1_amount == 0 && Match[Sno - 1].opp2_amount == 0)
+                            gameDone = true;
+
+                        let playerCheck = (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 0 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 1 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 0 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol) || (TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp1].symbol && TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp1].symbol);
+                        if (playerCheck) {
+                            turnMessage.innerText = "Player " + playerData[Match[Sno - 1].opp1].name + " won this Match";
+                            for (let i = 0; i < 3; i++) {
+                                for (let j = 0; j < 3; j++)
+                                    TicTacToe_Board_filled[3 * i + j] = true;
+                            }
+                            side++;
+
+                            if (!gameDone) {
+                                setTimeout(() => { turn = NextMatch(TicTacToe_Board, TicTacToe_Board_filled, turnMessage); }, 5000);
+                                return;
+                            }
+                        }
+                        else if (!playerCheck && TicTacToe_Board_filled[0] && TicTacToe_Board_filled[1] && TicTacToe_Board_filled[2] && TicTacToe_Board_filled[3] && TicTacToe_Board_filled[4] && TicTacToe_Board_filled[5] && TicTacToe_Board_filled[6] && TicTacToe_Board_filled[7] && TicTacToe_Board_filled[8]) {
+                            turnMessage.innerText = "This Match is a draw";
+                            for (let i = 0; i < 3; i++) {
+                                for (let j = 0; j < 3; j++)
+                                    TicTacToe_Board_filled[3 * i + j] = true;
+                            }
+
+                            if (!gameDone) {
+                                setTimeout(() => { turn = NextMatch(TicTacToe_Board, TicTacToe_Board_filled, turnMessage); }, 5000);
+                                return;
+                            }
+                        }
+                    }
+                    else if (turn == 2) {
+                        TicTacToe_Board[3 * i + j].innerText = playerData[Match[Sno - 1].opp2].symbol;
+                        Match[Sno - 1].opp2_amount--;
+                        if (Match[Sno - 1].opp1_amount == 0 && Match[Sno - 1].opp2_amount == 0)
+                            gameDone = true;
+
+                        let playerCheck = (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 0 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 1 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 0 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 0 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 2 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol) || (TicTacToe_Board[3 * 2 + 0].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 1 + 1].innerText == playerData[Match[Sno - 1].opp2].symbol && TicTacToe_Board[3 * 0 + 2].innerText == playerData[Match[Sno - 1].opp2].symbol);
+                        if (playerCheck) {
+                            turnMessage.innerText = "Player " + playerData[Match[Sno - 1].opp2].name + " won this Match";
+                            for (let i = 0; i < 3; i++) {
+                                for (let j = 0; j < 3; j++)
+                                    TicTacToe_Board_filled[3 * i + j] = true;
+                            }
+                            side--;
+
+                            if (!gameDone) {
+                                setTimeout(() => { turn = NextMatch(TicTacToe_Board, TicTacToe_Board_filled, turnMessage); }, 5000);
+                                return;
+                            }
+                        }
+                        else if (!playerCheck && TicTacToe_Board_filled[0] && TicTacToe_Board_filled[1] && TicTacToe_Board_filled[2] && TicTacToe_Board_filled[3] && TicTacToe_Board_filled[4] && TicTacToe_Board_filled[5] && TicTacToe_Board_filled[6] && TicTacToe_Board_filled[7] && TicTacToe_Board_filled[8]) {
+                            turnMessage.innerText = "This Match is a draw";
+                            for (let i = 0; i < 3; i++) {
+                                for (let j = 0; j < 3; j++)
+                                    TicTacToe_Board_filled[3 * i + j] = true;
+                            }
+
+                            if (!gameDone) {
+                                setTimeout(() => { turn = NextMatch(TicTacToe_Board, TicTacToe_Board_filled, turnMessage); }, 5000);
+                                return;
+                            }
+                        }
+                    }
+
+                    if (gameDone) {
+                        turnMessage.innerText = "";
+
+                        let result = document.createElement("p");
+                        if (side > 0) {
+                            result.innerHTML = "The Game between Player " + playerData[Match[Sno - 1].opp1].name + " & " + playerData[Match[Sno - 1].opp2].name + " has finished !!!!!" + "<br>" + "Player " + playerData[Match[Sno - 1].opp1].name + " won the Game";
+                            playerWins[Match[Sno - 1].opp1]++;
+                        }
+                        else if (side < 0) {
+                            result.innerHTML = "The Game between Player " + playerData[Match[Sno - 1].opp1].name + " & " + playerData[Match[Sno - 1].opp2].name + " has finished !!!!!" + "<br>" + "Player " + playerData[Match[Sno - 1].opp2].name + " won the Game";
+                            playerWins[Match[Sno - 1].opp2]++;
+                        }
+                        else if (side == 0) {
+                            result.innerHTML = "The Game between Player " + playerData[Match[Sno - 1].opp1].name + " & " + playerData[Match[Sno - 1].opp2].name + " has finished !!!!!" + "<br>" + "The Game is a draw";
+                        }
+                        document.body.appendChild(result);
+                        if (Sno + 1 <= Match.length) {
+                            let nextGame = document.createElement("button");
+                            nextGame.innerText = "Next Game";
+                            nextGame.addEventListener("click", function () {
+                                Sno++;
+
+                                document.body.innerHTML = "";
+                                let gameMessage = document.createElement("p");
+                                gameMessage.innerHTML = "Player " + (Match[Sno - 1].opp1 + 1) + ", " + playerData[Match[Sno - 1].opp1].name + " will use " + playerData[Match[Sno - 1].opp1].symbol + "<br>" + "Player " + (Match[Sno - 1].opp2 + 1) + ", " + playerData[Match[Sno - 1].opp2].name + " will use " + playerData[Match[Sno - 1].opp2].symbol + "<br><br>" + "The Game between Player " + playerData[Match[Sno - 1].opp1].name + " & Player " + playerData[Match[Sno - 1].opp2].name + " has started !!!!!";
+                                document.body.appendChild(gameMessage);
+
+                                let start = document.createElement("button");
+                                start.innerText = "Start";
+                                start.addEventListener("click", function () {
+                                    TicTacToe_Game();
+                                });
+                                document.body.appendChild(start);
+                            });
+                            document.body.appendChild(nextGame);
+                        }
+                        else {
+                            let Check_Result = document.createElement("button");
+                            Check_Result.innerText = "Check Result";
+                            Check_Result.addEventListener("click", TheEnd);
+                            document.body.appendChild(Check_Result);
+                        }
+                    }
+                    else {
+                        if (Match[Sno - 1].opp2_amount == 0) {
+                            turn = 1;
+                            turnMessage.innerText = playerData[Match[Sno - 1].opp1].name + "'s turn: (" + playerData[Match[Sno - 1].opp1].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp1_amount;
+                        }
+                        else if (Match[Sno - 1].opp1_amount == 0) {
+                            turn = 2;
+                            turnMessage.innerText = playerData[Match[Sno - 1].opp2].name + "'s turn: (" + playerData[Match[Sno - 1].opp2].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp2_amount;
+                        }
+                        else {
+                            turn = (turn % 2) + 1;
+                            if (turn == 1)
+                                turnMessage.innerText = playerData[Match[Sno - 1].opp1].name + "'s turn: (" + playerData[Match[Sno - 1].opp1].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp1_amount;
+                            else if (turn == 2)
+                                turnMessage.innerText = playerData[Match[Sno - 1].opp2].name + "'s turn: (" + playerData[Match[Sno - 1].opp2].symbol + ") ------------------------- Amount left = " + Match[Sno - 1].opp2_amount;
+                        }
+                    }
+                });
+                Container.appendChild(TicTacToe_Board[3 * i + j]);
+            }
+        }
+        document.body.appendChild(Container);
+    }
+
+    function TheEnd() {
+        document.body.innerHTML = "";
+        let finalMessage = document.createElement("p");
+        finalMessage.innerText = "Final Result!!!!!";
+        document.body.appendChild(finalMessage);
+        
+        for (let i = 1; i <= playerNumber; i++) {
+            let this_player = document.createElement("p");
+            this_player.innerText = "Player " + i + ", " + playerData[i - 1].name + " has won " + playerWins[i - 1] + " Game(s)";
+            document.body.appendChild(this_player);
+        }
+
+    }
+
+</script>
+
+</html>
