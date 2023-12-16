@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+    <style>
+        body {
+            background-color: grey;
+            color: black;
+            font-weight: bold;
+            font-size: 25px;
+        }
+
+        input {
+            background-color: goldenrod;
+            color: maroon;
+            font-size: 20px;
+        }
+
+        button {
+            background-color: rebeccapurple;
+            color: aqua;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Load the file "Players.dat"</p>
+    <input type="file" id="data" /><br><br>
+    <button id="read-data">Get Started</button>
+</body>
+<script>
+    var playerNumber;
+    var playerData = [];
+    var playerScore = [];
+
+    const height = 15, width = 15;
+    var Sno;
+    var foodSymbol;
+
+    document.querySelector("#read-data").addEventListener('click', function () {
+        if (document.querySelector("#data").value == '') {
+            console.log('No file selected');
+            return;
+        }
+        let file = document.querySelector("#data").files[0];
+        let reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function (e) {
+            let data = e.target.result.split(",");
+            playerNumber = Number(data[0]);
+            for (let i = 1; i <= playerNumber * 3; i += 3)
+                playerData.push({ name: data[i], symbol: data[i + 1], amount: data[i + 2] });
+            Sno = 1;
+
+            document.body.innerHTML = "";
+            let done = undefined;
+            do {
+                foodSymbol = String.fromCharCode(Math.floor(Math.random() * 94) + 33);
+                done = true;
+                for (let i = 0; i < playerNumber; i++) {
+                    if (foodSymbol == playerData[i].symbol) {
+                        done = false;
+                        break;
+                    }
+                }
+            }
+            while (!done);
+            let gameMessage = document.createElement("p");
+            gameMessage.innerHTML = "Player " + Sno + ", " + playerData[Sno - 1].name + " will have snake with " + playerData[Sno - 1].symbol + " symbol" + "<br>" + "The food will be " + foodSymbol;
+            document.body.appendChild(gameMessage);
+
+            let start = document.createElement("button");
+            start.innerText = "Start";
+            start.addEventListener("click", Snake_Game);
+            document.body.appendChild(start);
+        };
+        reader.onerror = function (e) {
+            console.log('Error : ' + e.type);
+        };
+    });
+
+    function controls() {
+        if (event.key == 'w' && dir != "DOWN")
+            dir = "UP";
+        else if (event.key == 's' && dir != "UP")
+            dir = "DOWN";
+        else if (event.key == 'a' && dir != "RIGHT")
+            dir = "LEFT";
+        else if (event.key == 'd' && dir != "LEFT")
+            dir = "RIGHT";
+    }
+    class Position {
+        constructor(posX, posY) {
+            this.posX = posX;
+            this.posY = posY;
+        }
+    }
+    var Container, Snake_Board, Snake_Board_filled;
+    var snake_body, food, dir, countdown;
+    var Message;
+    function Snake_Game() {
+        document.body.innerHTML = "";
+
+        playerScore.push(0);
+        Message = document.createElement("p");
+        Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
+        document.body.appendChild(Message);
+
+        Container = document.createElement("div");
+        let ContainerStyle = "border: 2px solid black; display: grid; width: " + (50 * width) + "px; height: " + (50 * height) + "px; grid-template-columns: ";
+        for (let i = 0; i < width; i++)
+            ContainerStyle += "auto ";
+        Container.style = ContainerStyle;
+
+        Snake_Board = [];
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                Snake_Board.push(document.createElement("div"));
+                Snake_Board[height * i + j].style = "height: 30px; width: 20px; padding: 10px 15px";
+                Container.appendChild(Snake_Board[height * i + j]);
+            }
+        }
+        document.body.appendChild(Container);
+
+        Snake_Board_filled = [];
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++)
+                Snake_Board_filled.push(false);
+        }
+        snake_body = [];
+        snake_body.push(new Position(5, 2));
+        snake_body.push(new Position(4, 2));
+        snake_body.push(new Position(3, 2));
+        snake_body.push(new Position(2, 2));
+        snake_body.push(new Position(1, 2));
+
+        for (let i = 0; i < snake_body.length; i++) {
+            Snake_Board[height * snake_body[i].posY + snake_body[i].posX].innerText = playerData[Sno - 1].symbol;
+            Snake_Board_filled[height * snake_body[i].posY + snake_body[i].posX] = true;
+        }
+        food = new Position(undefined, undefined);
+        do {
+            food.posX = Math.floor(Math.random() * width);
+            food.posY = Math.floor(Math.random() * height);
+        } while (Snake_Board_filled[height * food.posY + food.posX]);
+        Snake_Board[height * food.posY + food.posX].innerText = foodSymbol;
+        Snake_Board_filled[height * food.posY + food.posX] = true;
+
+        dir = "RIGHT"; // "UP", "DOWN", "LEFT", "RIGHT"
+        document.body.addEventListener("keydown", controls);
+
+        countdown = 1;
+        gameLoop();
+    }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    async function gameLoop() {
+        while (true) {
+            if (playerData[Sno - 1].amount == 0)
+                break;
+
+            let bodyAddition = new Position(snake_body[snake_body.length - 1].posX, snake_body[snake_body.length - 1].posY);
+            for (let i = snake_body.length - 1; i > 0; i--) {
+                snake_body[i].posX = snake_body[i - 1].posX;
+                snake_body[i].posY = snake_body[i - 1].posY;
+            }
+            if (dir == "UP") {
+                if (snake_body[0].posY == 0)
+                    break;
+                if (Snake_Board[height * (snake_body[0].posY - 1) + snake_body[0].posX].innerText == playerData[Sno - 1].symbol)
+                    break;
+                else
+                    snake_body[0].posY--;
+            }
+            else if (dir == "DOWN") {
+                if (snake_body[0].posY == height - 1)
+                    break;
+                if (Snake_Board[height * (snake_body[0].posY + 1) + snake_body[0].posX].innerText == playerData[Sno - 1].symbol)
+                    break;
+                else
+                    snake_body[0].posY++;
+            }
+            else if (dir == "LEFT") {
+                if (snake_body[0].posX == 0)
+                    break;
+                if (Snake_Board[height * snake_body[0].posY + (snake_body[0].posX - 1)].innerText == playerData[Sno - 1].symbol)
+                    break;
+                else
+                    snake_body[0].posX--;
+            }
+            else if (dir == "RIGHT") {
+                if (snake_body[0].posX == width - 1)
+                    break;
+                if (Snake_Board[height * snake_body[0].posY + (snake_body[0].posX + 1)].innerText == playerData[Sno - 1].symbol)
+                    break;
+                else
+                    snake_body[0].posX++;
+            }
+            Snake_Board[height * bodyAddition.posY + bodyAddition.posX].innerText = ' ';
+            Snake_Board_filled[height * bodyAddition.posY + bodyAddition.posX] = false;
+
+            let isFood = (Snake_Board[height * snake_body[0].posY + snake_body[0].posX].innerText == foodSymbol);
+            Snake_Board[height * snake_body[0].posY + snake_body[0].posX].innerText = playerData[Sno - 1].symbol;
+            Snake_Board_filled[height * snake_body[0].posY + snake_body[0].posX] = true;
+            if (isFood) {
+                playerScore[Sno - 1] += 10;
+                Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
+
+                snake_body.push(bodyAddition);
+                Snake_Board[height * bodyAddition.posY + bodyAddition.posX].innerText = playerData[Sno - 1].symbol;
+                Snake_Board_filled[height * bodyAddition.posY + bodyAddition.posX] = true;
+                do {
+                    food.posX = Math.floor(Math.random() * width);
+                    food.posY = Math.floor(Math.random() * height);
+                } while (Snake_Board_filled[height * food.posY + food.posX]);
+                Snake_Board[height * food.posY + food.posX].innerText = foodSymbol;
+                Snake_Board_filled[height * food.posY + food.posX] = true;
+            }
+            if (countdown == 5) {
+                playerData[Sno - 1].amount--;
+                Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
+                countdown = 1;
+            }
+            else
+                countdown++;
+
+            await sleep(500);
+        }
+        nextGame();
+    }
+    function nextGame() {
+        document.body.removeEventListener("keydown", controls);
+
+        let result = document.createElement("p");
+        result.innerText = "Player " + playerData[Sno - 1].name + ", Score =  " + playerScore[Sno - 1];
+        document.body.appendChild(result);
+        if (Sno + 1 <= playerNumber) {
+            let nextGame = document.createElement("button");
+            nextGame.innerText = "Next Game";
+            nextGame.addEventListener("click", function () {
+                Sno++;
+
+                document.body.innerHTML = "";
+                let done = undefined;
+                do {
+                    foodSymbol = String.fromCharCode(Math.floor(Math.random() * 94) + 33);
+                    done = true;
+                    for (let i = 0; i < playerNumber; i++) {
+                        if (foodSymbol == playerData[i].symbol) {
+                            done = false;
+                            break;
+                        }
+                    }
+                }
+                while (!done);
+                let gameMessage = document.createElement("p");
+                gameMessage.innerHTML = "Player " + Sno + ", " + playerData[Sno - 1].name + " will have snake with " + playerData[Sno - 1].symbol + " symbol" + "<br>" + "The food will be " + foodSymbol;
+                document.body.appendChild(gameMessage);
+
+                let start = document.createElement("button");
+                start.innerText = "Start";
+                start.addEventListener("click", Snake_Game);
+                document.body.appendChild(start);
+            });
+            document.body.appendChild(nextGame);
+        }
+        else {
+            let Check_Result = document.createElement("button");
+            Check_Result.innerText = "Check Result";
+            Check_Result.addEventListener("click", TheEnd);
+            document.body.appendChild(Check_Result);
+        }
+    }
+    function TheEnd() {
+        document.body.innerHTML = "";
+        let finalMessage = document.createElement("p");
+        finalMessage.innerText = "Final Result!!!!!";
+        document.body.appendChild(finalMessage);
+
+        for (let i = 1; i <= playerNumber; i++) {
+            let this_player = document.createElement("p");
+            this_player.innerText = "Player " + i + ", " + playerData[i - 1].name + " has scored " + playerScore[i - 1] + " points";
+            document.body.appendChild(this_player);
+        }
+    }
+</script>
+
+</html>
