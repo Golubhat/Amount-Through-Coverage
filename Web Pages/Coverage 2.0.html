@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amount Through Coverage</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #333;
+            font-size: 18px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        p {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+
+        input {
+            padding: 10px 15px;
+            border: 2px solid #888;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 5px 0;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input:focus {
+            border: 2px solid #4a90e2;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4a90e2;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        .cell {
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 40px;
+            height: 40px;
+            background: white;
+        }
+
+        .cell:hover {
+            background: #e1e7f0;
+        }
+
+        .player1 {
+            background: #ffddc1 !important;
+            color: #d35400;
+        }
+
+        .player2 {
+            background: #c1f0ff !important;
+            color: #2980b9;
+        }
+
+        .player3 {
+            background: #e1ffc1 !important;
+            color: #27ae60;
+        }
+
+        .player4 {
+            background: #f5c1ff !important;
+            color: #8e44ad;
+        }
+
+        .results {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .results p {
+            margin: 5px 0;
+        }
+
+        .winner {
+            background: #ffeaa7;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Amount Through Coverage</h1>
+    <p>Enter number of players</p>
+
+    <script>
+        var playerNumber;
+        var playerData = [];
+
+        const size = 20;
+        var CoverageBoard = [];
+
+        function calculateArea(this_player, areaToFill, y, x) {
+            if (this_player.circuit == "CLOSED") {
+                if (((this_player.startPosition.y == size - 1 && this_player.endPosition.x == size - 1) || (this_player.startPosition.x == size - 1 && this_player.endPosition.y == size - 1)) && (y == 0 || x == 0))
+                    this_player.circuit = "OPENED";
+                else if (((this_player.startPosition.y == 0 && this_player.endPosition.x == size - 1) || (this_player.startPosition.x == size - 1 && this_player.endPosition.y == 0)) && (y == size - 1 || x == 0))
+                    this_player.circuit = "OPENED";
+                else if (((this_player.startPosition.y == 0 && this_player.endPosition.x == 0) || (this_player.startPosition.x == 0 && this_player.endPosition.y == 0)) && (y == size - 1 || x == size - 1))
+                    this_player.circuit = "OPENED";
+                else if (((this_player.startPosition.y == size - 1 && this_player.endPosition.x == 0) || (this_player.startPosition.x == 0 && this_player.endPosition.y == size - 1)) && (y == 0 || x == size - 1))
+                    this_player.circuit = "OPENED";
+                else if ((this_player.startPosition.y == size - 1 && this_player.endPosition.y == size - 1) && (y == 0 || x == 0 || x == size - 1))
+                    this_player.circuit = "OPENED";
+                else if ((this_player.startPosition.x == size - 1 && this_player.endPosition.x == size - 1) && (y == 0 || y == size - 1 || x == 0))
+                    this_player.circuit = "OPENED";
+                else if ((this_player.startPosition.y == 0 && this_player.endPosition.y == 0) && (y == size - 1 || x == 0 || x == size - 1))
+                    this_player.circuit = "OPENED";
+                else if ((this_player.startPosition.x == 0 && this_player.endPosition.x == 0) && (y == 0 || y == size - 1 || x == size - 1))
+                    this_player.circuit = "OPENED";
+            }
+            areaToFill[size * y + x] = 1;
+            if (y < size - 1) {
+                if (areaToFill[size * (y + 1) + x] == 0)
+                    calculateArea(this_player, areaToFill, y + 1, x);
+            }
+            if (x < size - 1) {
+                if (areaToFill[size * y + (x + 1)] == 0)
+                    calculateArea(this_player, areaToFill, y, x + 1);
+            }
+            if (y > 0) {
+                if (areaToFill[size * (y - 1) + x] == 0)
+                    calculateArea(this_player, areaToFill, y - 1, x);
+            }
+            if (x > 0) {
+                if (areaToFill[size * y + (x - 1)] == 0)
+                    calculateArea(this_player, areaToFill, y, x - 1);
+            }
+        }
+
+        // Initial input for number of players
+        let pN = document.createElement("input");
+        pN.type = "number";
+        pN.value = 2;
+        pN.min = 1;
+        pN.max = 4;
+        pN.onkeydown = function () { return false; }
+        document.body.appendChild(pN);
+
+        document.body.appendChild(document.createElement("br"));
+        document.body.appendChild(document.createElement("br"));
+
+        let pD = document.createElement("button");
+        pD.innerText = "Proceed";
+        document.body.appendChild(pD);
+
+        pD.addEventListener("click", function () {
+            document.body.removeChild(pD);
+            pN.readOnly = true;
+            playerNumber = pN.value;
+            for (let i = 1; i <= playerNumber; i++) {
+                let sno = document.createElement("div");
+                sno.innerText = "Player " + i + ",";
+                sno.style.marginBottom = "10px";
+                document.body.appendChild(sno);
+
+                let name = document.createElement("div");
+                name.innerHTML = "Enter your name&nbsp;";
+                document.body.appendChild(name);
+
+                let nameValue = document.createElement("input");
+                nameValue.id = "name" + i;
+                nameValue.maxLength = 20;
+                name.appendChild(nameValue);
+
+                let symbol = document.createElement("div");
+                symbol.innerHTML = "Enter your symbol&nbsp;";
+                document.body.appendChild(symbol);
+
+                let symbolValue = document.createElement("input");
+                symbolValue.id = "symbol" + i;
+                symbolValue.maxLength = 1;
+                symbol.appendChild(symbolValue);
+
+                document.body.appendChild(document.createElement("br"));
+            }
+
+            let start = document.createElement("button");
+            start.innerText = "Start Game";
+            document.body.appendChild(start);
+
+            start.addEventListener("click", function () {
+                for (let i = 1; i <= playerNumber; i++) {
+                    if (document.getElementById("name" + i).value === "") {
+                        alert("All names must be filled");
+                        return;
+                    }
+                    if (document.getElementById("symbol" + i).value === "") {
+                        alert("All symbols must be filled");
+                        return;
+                    }
+                }
+                let reset = false;
+                for (let i = 1; i <= playerNumber; i++) {
+                    for (let j = i + 1; j <= playerNumber; j++) {
+                        if (document.getElementById("name" + i).value == document.getElementById("name" + j).value) {
+                            document.getElementById("name" + j).value = "";
+                            reset = true;
+                        }
+                        if (document.getElementById("symbol" + i).value == document.getElementById("symbol" + j).value) {
+                            document.getElementById("symbol" + j).value = "";
+                            reset = true;
+                        }
+                    }
+                }
+                if (reset) {
+                    alert("All names & symbols must be unique");
+                    return;
+                }
+                for (let i = 1; i <= playerNumber; i++)
+                    playerData.push({
+                        name: document.getElementById("name" + i).value,
+                        symbol: document.getElementById("symbol" + i).value,
+                        amount: undefined,
+                        symbolsUsed: 0,
+                        areaCovered: 0,
+                        status: "START",
+                        circuit: undefined,
+                        startPosition: { x: undefined, y: undefined },
+                        endPosition: { x: undefined, y: undefined }
+                    });
+
+                alert("The Coverage starts now!");
+                document.body.innerHTML = "";
+
+                let turn = 1;
+                let turnMessage = document.createElement("p");
+                turnMessage.innerText = "Player " + turn + " (" + playerData[turn - 1].name + ")'s turn - place your symbol (" + playerData[turn - 1].symbol + ")";
+                document.body.appendChild(turnMessage);
+
+                let Container = document.createElement("div");
+                Container.style = "display: grid; grid-template-columns: repeat(" + size + ", 40px); gap:0;";
+
+                let CoverageBoard_filled = Array(size * size).fill(false);
+
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        let cell = document.createElement("div");
+                        cell.classList.add("cell");
+                        CoverageBoard.push(cell);
+
+                        cell.addEventListener("click", function () {
+                            if (CoverageBoard_filled[size * i + j]) return;
+                            let nextTurn = false;
+
+                            if (playerData[turn - 1].status == "PLACE") {
+                                let adjacentWithSymbol = false;
+                                if (i != 0) adjacentWithSymbol ||= (CoverageBoard[size * (i - 1) + j].innerText == playerData[turn - 1].symbol);
+                                if (i != size - 1) adjacentWithSymbol ||= (CoverageBoard[size * (i + 1) + j].innerText == playerData[turn - 1].symbol);
+                                if (j != 0) adjacentWithSymbol ||= (CoverageBoard[size * i + (j - 1)].innerText == playerData[turn - 1].symbol);
+                                if (j != size - 1) adjacentWithSymbol ||= (CoverageBoard[size * i + (j + 1)].innerText == playerData[turn - 1].symbol);
+                                if (adjacentWithSymbol) {
+                                    playerData[turn - 1].symbolsUsed++;
+                                    cell.innerText = playerData[turn - 1].symbol;
+                                    cell.classList.add("player" + turn);
+                                    CoverageBoard_filled[size * i + j] = true;
+                                    if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
+                                        playerData[turn - 1].endPosition.x = j;
+                                        playerData[turn - 1].endPosition.y = i;
+                                        playerData[turn - 1].status = "END";
+                                    }
+                                    nextTurn = true;
+                                }
+                            } else if (playerData[turn - 1].status == "START" && (i == 0 || i == size - 1 || j == 0 || j == size - 1)) {
+                                playerData[turn - 1].symbolsUsed++;
+                                cell.innerText = playerData[turn - 1].symbol;
+                                cell.classList.add("player" + turn);
+                                CoverageBoard_filled[size * i + j] = true;
+                                playerData[turn - 1].startPosition.x = j;
+                                playerData[turn - 1].startPosition.y = i;
+                                playerData[turn - 1].status = "PLACE";
+                                nextTurn = true;
+                            }
+
+                            if (playerData[turn - 1].status == "END") {
+                                let areaToFill = [];
+                                for (let y = 0; y < size; y++) {
+                                    for (let x = 0; x < size; x++) {
+                                        if (CoverageBoard[size * y + x].innerText == playerData[turn - 1].symbol)
+                                            areaToFill.push(-1);
+                                        else
+                                            areaToFill.push(0);
+                                    }
+                                }
+                                playerData[turn - 1].circuit = "CLOSED";
+                                let y, x;
+                                do {
+                                    y = Math.floor(Math.random() * size);
+                                    x = Math.floor(Math.random() * size);
+                                } while (areaToFill[size * y + x] != 0);
+                                calculateArea(playerData[turn - 1], areaToFill, y, x);
+
+                                for (let y2 = 0; y2 < size; y2++) {
+                                    for (let x2 = 0; x2 < size; x2++) {
+                                        if (areaToFill[size * y2 + x2] == 1)
+                                            playerData[turn - 1].areaCovered++;
+                                    }
+                                }
+
+                                let verticalBorder = (playerData[turn - 1].startPosition.y == 0 && playerData[turn - 1].endPosition.y == size - 1) || (playerData[turn - 1].startPosition.y == size - 1 && playerData[turn - 1].endPosition.y == 0);
+                                let horizontalBorder = (playerData[turn - 1].startPosition.x == 0 && playerData[turn - 1].endPosition.x == size - 1) || (playerData[turn - 1].startPosition.x == size - 1 && playerData[turn - 1].endPosition.x == 0);
+                                if (verticalBorder || horizontalBorder)
+                                    playerData[turn - 1].areaCovered = (playerData[turn - 1].areaCovered > (size * size) / 2) ? (size * size) - (playerData[turn - 1].areaCovered + playerData[turn - 1].symbolsUsed) : playerData[turn - 1].areaCovered;
+                                else
+                                    playerData[turn - 1].areaCovered = (playerData[turn - 1].circuit == "OPENED") ? (size * size) - (playerData[turn - 1].areaCovered + playerData[turn - 1].symbolsUsed) : playerData[turn - 1].areaCovered;
+
+                                let isOver = true;
+                                for (let k = 0; k < playerNumber; k++) {
+                                    if (playerData[k].status != "END") {
+                                        isOver = false;
+                                        break;
+                                    }
+                                }
+                                if (isOver) {
+                                    TheEnd();
+                                    return;
+                                }
+                            }
+
+                            if (nextTurn) {
+                                do {
+                                    turn = (turn == playerNumber) ? 1 : turn + 1;
+                                } while (playerData[turn - 1].status == "END");
+                                turnMessage.innerText = "Player " + turn + " (" + playerData[turn - 1].name + ")'s turn - place your symbol (" + playerData[turn - 1].symbol + ")";
+                            }
+                        });
+
+                        Container.appendChild(cell);
+                    }
+                }
+                document.body.appendChild(Container);
+            });
+        });
+
+        function TheEnd() {
+            alert("The Coverage is over!");
+            let Sum_symbolsUsed = 0;
+            let resultsDiv = document.createElement("div");
+            resultsDiv.classList.add("results");
+
+            for (let i = 1; i <= playerNumber; i++) {
+                let this_player = document.createElement("p");
+                this_player.innerText = "Player " + i + ": " + playerData[i - 1].name + " (" + playerData[i - 1].symbol + ")";
+                resultsDiv.appendChild(this_player);
+
+                let area_covered = document.createElement("p");
+                area_covered.innerText = "Area Covered: " + playerData[i - 1].areaCovered;
+                resultsDiv.appendChild(area_covered);
+
+                let symbols_used = document.createElement("p");
+                symbols_used.innerText = "Symbols Used: " + playerData[i - 1].symbolsUsed;
+                resultsDiv.appendChild(symbols_used);
+
+                resultsDiv.appendChild(document.createElement("hr"));
+                Sum_symbolsUsed += playerData[i - 1].symbolsUsed;
+            }
+
+            let resultBtn = document.createElement("button");
+            resultBtn.innerText = "Check Final Result";
+            resultsDiv.appendChild(resultBtn);
+
+            document.body.appendChild(resultsDiv);
+
+            resultBtn.addEventListener("click", function () {
+                document.body.innerHTML = "";
+                let finalResults = document.createElement("div");
+                finalResults.classList.add("results");
+
+                if (Math.floor(Math.random() * 2) == 0) {
+                    for (let i = 1; i <= playerNumber; i++) {
+                        playerData[i - 1].amount = Math.floor((playerData[i - 1].areaCovered * playerData[i - 1].symbolsUsed) / Sum_symbolsUsed);
+                        let this_player = document.createElement("p");
+                        this_player.innerText = "Player " + i + " (" + playerData[i - 1].name + "): " + playerData[i - 1].amount;
+                        finalResults.appendChild(this_player);
+                    }
+                } else {
+                    for (let i = 1; i <= playerNumber; i++) {
+                        playerData[i - 1].amount = Math.floor((playerData[i - 1].areaCovered * Sum_symbolsUsed) / playerData[i - 1].symbolsUsed);
+                        let this_player = document.createElement("p");
+                        this_player.innerText = "Player " + i + " (" + playerData[i - 1].name + "): " + playerData[i - 1].amount;
+                        finalResults.appendChild(this_player);
+                    }
+                }
+
+                // 🔹 Save results to file
+                var saveByteArray = (function () {
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    return function (data, name) {
+                        var blob = new Blob(data, { type: "octet/stream" }),
+                            url = window.URL.createObjectURL(blob);
+                        a.href = url;
+                        a.download = name;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    };
+                }());
+
+                let theData = [playerNumber];
+                for (let i = 0; i < playerNumber; i++) {
+                    theData.push(playerData[i].name);
+                    theData.push(playerData[i].symbol);
+                    theData.push(playerData[i].amount);
+                }
+                saveByteArray([theData], "Players.dat");
+
+                document.body.appendChild(finalResults);
+            });
+        }
+    </script>
+</body>
+
+</html>
