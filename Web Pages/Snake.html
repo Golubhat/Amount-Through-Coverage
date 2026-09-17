@@ -5,33 +5,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake</title>
+
     <style>
-        body {
-            background-color: grey;
-            color: black;
-            font-weight: bold;
-            font-size: 25px;
+        * {
+            box-sizing: border-box;
         }
 
-        input {
-            background-color: goldenrod;
-            color: maroon;
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #333;
+            font-size: 18px;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        h1 {
+            margin: 10px 0 15px;
+            color: #2c3e50;
+            font-size: 32px;
+        }
+
+        p {
             font-size: 20px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            padding: 10px 15px;
+            border: 2px solid #888;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            margin: 10px 0;
+            outline: none;
+        }
+
+        input[type="file"]:focus {
+            border-color: #4a90e2;
         }
 
         button {
-            background-color: rebeccapurple;
-            color: aqua;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4a90e2;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background: #357abd;
+        }
+
+        /* Setup / player information panel */
+        .setup-panel {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            margin-top: 50px;
+            min-width: 350px;
+        }
+
+        .setup-panel p {
+            margin-bottom: 15px;
+        }
+
+        /* Player/game information */
+        .game-info {
+            background: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 19px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        /* Score and time */
+        .score-board {
+            background: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Snake game board */
+        .snake-board {
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(15, 40px);
+
+            gap: 1px;
+
+            background: #444;
+            border: 3px solid #333;
+            padding: 2px;
+
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Individual board cells */
+        .snake-cell {
+            width: 40px;
+            height: 40px;
+
+            background: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
             font-size: 20px;
+            font-weight: bold;
+
+            overflow: hidden;
+        }
+
+        /* Result panel */
+        .result {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+            margin-top: 30px;
+            min-width: 320px;
+
+            text-align: center;
+        }
+
+        .result-title {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .result p {
+            margin: 12px 0;
+        }
+
+        /* Small-screen support */
+        @media (max-width: 700px) {
+            body {
+                padding: 10px;
+            }
+
+            .snake-board {
+                transform-origin: top center;
+                transform: scale(0.8);
+                margin-bottom: -90px;
+            }
+
+            .setup-panel {
+                min-width: auto;
+                width: 95%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <p>Load the file "Players.dat"</p>
-    <input type="file" id="data" /><br><br>
-    <button id="read-data">Get Started</button>
+    <div class="setup-panel">
+        <h1>Snake</h1>
+        <p>Load the file <b>"Players.dat"</b></p>
+        <input type="file" id="data">
+        <button id="read-data">Get Started</button>
+    </div>
 </body>
+
 <script>
     var playerNumber;
     var playerData = [];
@@ -46,16 +211,22 @@
             console.log('No file selected');
             return;
         }
+
         let file = document.querySelector("#data").files[0];
         let reader = new FileReader();
         reader.readAsBinaryString(file);
         reader.onload = function (e) {
             let data = e.target.result.split(",");
+
             playerNumber = Number(data[0]);
             for (let i = 1; i <= playerNumber * 3; i += 3)
-                playerData.push({ name: data[i], symbol: data[i + 1], amount: data[i + 2] });
-            Sno = 1;
+                playerData.push({
+                    name: data[i],
+                    symbol: data[i + 1],
+                    amount: data[i + 2]
+                });
 
+            Sno = 1;
             document.body.innerHTML = "";
             let done = undefined;
             do {
@@ -67,12 +238,20 @@
                         break;
                     }
                 }
-            }
-            while (!done);
-            let gameMessage = document.createElement("p");
-            gameMessage.innerHTML = "Player " + Sno + ", " + playerData[Sno - 1].name + " will have snake with " + playerData[Sno - 1].symbol + " symbol" + "<br>" + "The food will be " + foodSymbol;
-            document.body.appendChild(gameMessage);
+            } while (!done);
 
+            let gameMessage = document.createElement("div");
+            gameMessage.classList.add("game-info");
+            gameMessage.innerHTML =
+                "Player " + Sno + ", " +
+                playerData[Sno - 1].name +
+                " will have snake with " +
+                playerData[Sno - 1].symbol +
+                " symbol" +
+                "<br>" +
+                "The food will be " +
+                foodSymbol;
+            document.body.appendChild(gameMessage);
             let start = document.createElement("button");
             start.innerText = "Start";
             start.addEventListener("click", Snake_Game);
@@ -83,16 +262,28 @@
         };
     });
 
-    function controls() {
-        if (event.key == 'w' && dir != "DOWN")
+    var canChangeDirection = true;
+    function controls(event) {
+        if (!canChangeDirection)
+            return;
+        if (event.key == 'w' && dir != "DOWN") {
             dir = "UP";
-        else if (event.key == 's' && dir != "UP")
+        }
+        else if (event.key == 's' && dir != "UP") {
             dir = "DOWN";
-        else if (event.key == 'a' && dir != "RIGHT")
+        }
+        else if (event.key == 'a' && dir != "RIGHT") {
             dir = "LEFT";
-        else if (event.key == 'd' && dir != "LEFT")
+        }
+        else if (event.key == 'd' && dir != "LEFT") {
             dir = "RIGHT";
+        }
+        else {
+            return;
+        }
+        canChangeDirection = false;
     }
+
     class Position {
         constructor(posX, posY) {
             this.posX = posX;
@@ -102,35 +293,38 @@
     var Container, Snake_Board, Snake_Board_filled;
     var snake_body, food, dir, countdown;
     var Message;
+
     function Snake_Game() {
         document.body.innerHTML = "";
-
         playerScore.push(0);
-        Message = document.createElement("p");
-        Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
+        Message = document.createElement("div");
+        Message.classList.add("score-board");
+        Message.innerText =
+            "Score: " +
+            playerScore[Sno - 1] +
+            " ------------------------- Time: " +
+            playerData[Sno - 1].amount;
+
         document.body.appendChild(Message);
-
         Container = document.createElement("div");
-        let ContainerStyle = "border: 2px solid black; display: grid; width: " + (50 * width) + "px; height: " + (50 * height) + "px; grid-template-columns: ";
-        for (let i = 0; i < width; i++)
-            ContainerStyle += "auto ";
-        Container.style = ContainerStyle;
-
+        Container.classList.add("snake-board");
         Snake_Board = [];
         for (let i = 0; i < height; i++) {
             for (let j = 0; j < width; j++) {
-                Snake_Board.push(document.createElement("div"));
-                Snake_Board[height * i + j].style = "height: 30px; width: 20px; padding: 10px 15px";
-                Container.appendChild(Snake_Board[height * i + j]);
+                let cell = document.createElement("div");
+                cell.classList.add("snake-cell");
+                Snake_Board.push(cell);
+                Container.appendChild(cell);
             }
         }
         document.body.appendChild(Container);
-
         Snake_Board_filled = [];
+
         for (let i = 0; i < height; i++) {
             for (let j = 0; j < width; j++)
                 Snake_Board_filled.push(false);
         }
+
         snake_body = [];
         snake_body.push(new Position(5, 2));
         snake_body.push(new Position(4, 2));
@@ -139,32 +333,63 @@
         snake_body.push(new Position(1, 2));
 
         for (let i = 0; i < snake_body.length; i++) {
-            Snake_Board[height * snake_body[i].posY + snake_body[i].posX].innerText = playerData[Sno - 1].symbol;
-            Snake_Board_filled[height * snake_body[i].posY + snake_body[i].posX] = true;
+            Snake_Board[
+                height * snake_body[i].posY +
+                snake_body[i].posX
+            ].innerText = playerData[Sno - 1].symbol;
+
+            Snake_Board[
+                height * snake_body[i].posY +
+                snake_body[i].posX
+            ].classList.add("snake-body");
+
+            Snake_Board_filled[
+                height * snake_body[i].posY +
+                snake_body[i].posX
+            ] = true;
         }
+
         food = new Position(undefined, undefined);
         do {
             food.posX = Math.floor(Math.random() * width);
             food.posY = Math.floor(Math.random() * height);
-        } while (Snake_Board_filled[height * food.posY + food.posX]);
-        Snake_Board[height * food.posY + food.posX].innerText = foodSymbol;
-        Snake_Board_filled[height * food.posY + food.posX] = true;
 
-        dir = "RIGHT"; // "UP", "DOWN", "LEFT", "RIGHT"
+        } while (
+            Snake_Board_filled[
+            height * food.posY + food.posX
+            ]
+        );
+
+        Snake_Board[
+            height * food.posY + food.posX
+        ].innerText = foodSymbol;
+
+        Snake_Board[
+            height * food.posY + food.posX
+        ].classList.add("snake-food");
+
+        Snake_Board_filled[
+            height * food.posY + food.posX
+        ] = true;
+
+        dir = "RIGHT";
         document.body.addEventListener("keydown", controls);
-
         countdown = 1;
         gameLoop();
     }
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
     async function gameLoop() {
         while (true) {
             if (playerData[Sno - 1].amount == 0)
                 break;
-
-            let bodyAddition = new Position(snake_body[snake_body.length - 1].posX, snake_body[snake_body.length - 1].posY);
+            let bodyAddition = new Position(
+                snake_body[snake_body.length - 1].posX,
+                snake_body[snake_body.length - 1].posY
+            );
             for (let i = snake_body.length - 1; i > 0; i--) {
                 snake_body[i].posX = snake_body[i - 1].posX;
                 snake_body[i].posY = snake_body[i - 1].posY;
@@ -172,7 +397,12 @@
             if (dir == "UP") {
                 if (snake_body[0].posY == 0)
                     break;
-                if (Snake_Board[height * (snake_body[0].posY - 1) + snake_body[0].posX].innerText == playerData[Sno - 1].symbol)
+                if (
+                    Snake_Board[
+                        height * (snake_body[0].posY - 1) +
+                        snake_body[0].posX
+                    ].innerText == playerData[Sno - 1].symbol
+                )
                     break;
                 else
                     snake_body[0].posY--;
@@ -180,7 +410,12 @@
             else if (dir == "DOWN") {
                 if (snake_body[0].posY == height - 1)
                     break;
-                if (Snake_Board[height * (snake_body[0].posY + 1) + snake_body[0].posX].innerText == playerData[Sno - 1].symbol)
+                if (
+                    Snake_Board[
+                        height * (snake_body[0].posY + 1) +
+                        snake_body[0].posX
+                    ].innerText == playerData[Sno - 1].symbol
+                )
                     break;
                 else
                     snake_body[0].posY++;
@@ -188,7 +423,12 @@
             else if (dir == "LEFT") {
                 if (snake_body[0].posX == 0)
                     break;
-                if (Snake_Board[height * snake_body[0].posY + (snake_body[0].posX - 1)].innerText == playerData[Sno - 1].symbol)
+                if (
+                    Snake_Board[
+                        height * snake_body[0].posY +
+                        (snake_body[0].posX - 1)
+                    ].innerText == playerData[Sno - 1].symbol
+                )
                     break;
                 else
                     snake_body[0].posX--;
@@ -196,70 +436,167 @@
             else if (dir == "RIGHT") {
                 if (snake_body[0].posX == width - 1)
                     break;
-                if (Snake_Board[height * snake_body[0].posY + (snake_body[0].posX + 1)].innerText == playerData[Sno - 1].symbol)
+                if (
+                    Snake_Board[
+                        height * snake_body[0].posY +
+                        (snake_body[0].posX + 1)
+                    ].innerText == playerData[Sno - 1].symbol
+                )
                     break;
                 else
                     snake_body[0].posX++;
             }
-            Snake_Board[height * bodyAddition.posY + bodyAddition.posX].innerText = ' ';
-            Snake_Board_filled[height * bodyAddition.posY + bodyAddition.posX] = false;
 
-            let isFood = (Snake_Board[height * snake_body[0].posY + snake_body[0].posX].innerText == foodSymbol);
-            Snake_Board[height * snake_body[0].posY + snake_body[0].posX].innerText = playerData[Sno - 1].symbol;
-            Snake_Board_filled[height * snake_body[0].posY + snake_body[0].posX] = true;
+            Snake_Board[
+                height * bodyAddition.posY +
+                bodyAddition.posX
+            ].innerText = ' ';
+
+            Snake_Board[
+                height * bodyAddition.posY +
+                bodyAddition.posX
+            ].classList.remove("snake-body");
+
+            Snake_Board_filled[
+                height * bodyAddition.posY +
+                bodyAddition.posX
+            ] = false;
+
+            let isFood =
+                Snake_Board[
+                    height * snake_body[0].posY +
+                    snake_body[0].posX
+                ].innerText == foodSymbol;
+
+            Snake_Board[
+                height * snake_body[0].posY +
+                snake_body[0].posX
+            ].innerText = playerData[Sno - 1].symbol;
+
+            Snake_Board[
+                height * snake_body[0].posY +
+                snake_body[0].posX
+            ].classList.add("snake-body");
+
+            Snake_Board_filled[
+                height * snake_body[0].posY +
+                snake_body[0].posX
+            ] = true;
+
             if (isFood) {
                 playerScore[Sno - 1] += 10;
-                Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
-
+                Message.innerText =
+                    "Score: " +
+                    playerScore[Sno - 1] +
+                    " ------------------------- Time: " +
+                    playerData[Sno - 1].amount;
                 snake_body.push(bodyAddition);
-                Snake_Board[height * bodyAddition.posY + bodyAddition.posX].innerText = playerData[Sno - 1].symbol;
-                Snake_Board_filled[height * bodyAddition.posY + bodyAddition.posX] = true;
+
+                Snake_Board[
+                    height * bodyAddition.posY +
+                    bodyAddition.posX
+                ].innerText = playerData[Sno - 1].symbol;
+
+                Snake_Board[
+                    height * bodyAddition.posY +
+                    bodyAddition.posX
+                ].classList.add("snake-body");
+
+                Snake_Board_filled[
+                    height * bodyAddition.posY +
+                    bodyAddition.posX
+                ] = true;
+
                 do {
                     food.posX = Math.floor(Math.random() * width);
                     food.posY = Math.floor(Math.random() * height);
-                } while (Snake_Board_filled[height * food.posY + food.posX]);
-                Snake_Board[height * food.posY + food.posX].innerText = foodSymbol;
-                Snake_Board_filled[height * food.posY + food.posX] = true;
+                } while (
+                    Snake_Board_filled[
+                    height * food.posY + food.posX
+                    ]
+                );
+
+                Snake_Board[
+                    height * food.posY + food.posX
+                ].innerText = foodSymbol;
+
+                Snake_Board[
+                    height * food.posY + food.posX
+                ].classList.add("snake-food");
+
+                Snake_Board_filled[
+                    height * food.posY + food.posX
+                ] = true;
             }
             if (countdown == 5) {
                 playerData[Sno - 1].amount--;
-                Message.innerText = "Score: " + playerScore[Sno - 1] + " ------------------------- Time: " + playerData[Sno - 1].amount;
+                Message.innerText =
+                    "Score: " +
+                    playerScore[Sno - 1] +
+                    " ------------------------- Time: " +
+                    playerData[Sno - 1].amount;
                 countdown = 1;
             }
             else
                 countdown++;
 
-            await sleep(500);
+            await sleep(300);
+            canChangeDirection = true;
         }
         nextGame();
     }
+
     function nextGame() {
         document.body.removeEventListener("keydown", controls);
 
-        let result = document.createElement("p");
-        result.innerText = "Player " + playerData[Sno - 1].name + ", Score =  " + playerScore[Sno - 1];
-        document.body.appendChild(result);
+        let result = document.createElement("div");
+        result.classList.add("result");
+
+        let resultText = document.createElement("p");
+        resultText.innerText =
+            "Player " +
+            playerData[Sno - 1].name +
+            ", Score = " +
+            playerScore[Sno - 1];
+        result.appendChild(resultText);
+
         if (Sno + 1 <= playerNumber) {
             let nextGame = document.createElement("button");
             nextGame.innerText = "Next Game";
             nextGame.addEventListener("click", function () {
                 Sno++;
-
                 document.body.innerHTML = "";
                 let done = undefined;
                 do {
-                    foodSymbol = String.fromCharCode(Math.floor(Math.random() * 94) + 33);
+                    foodSymbol =
+                        String.fromCharCode(
+                            Math.floor(Math.random() * 94) + 33
+                        );
                     done = true;
                     for (let i = 0; i < playerNumber; i++) {
-                        if (foodSymbol == playerData[i].symbol) {
+                        if (
+                            foodSymbol ==
+                            playerData[i].symbol
+                        ) {
                             done = false;
                             break;
                         }
                     }
-                }
-                while (!done);
-                let gameMessage = document.createElement("p");
-                gameMessage.innerHTML = "Player " + Sno + ", " + playerData[Sno - 1].name + " will have snake with " + playerData[Sno - 1].symbol + " symbol" + "<br>" + "The food will be " + foodSymbol;
+                } while (!done);
+
+                let gameMessage = document.createElement("div");
+                gameMessage.classList.add("game-info");
+                gameMessage.innerHTML =
+                    "Player " +
+                    Sno +
+                    ", " +
+                    playerData[Sno - 1].name +
+                    " will have snake with " +
+                    playerData[Sno - 1].symbol +
+                    " symbol" +
+                    "<br>" +
+                    "The food will be " +
+                    foodSymbol;
                 document.body.appendChild(gameMessage);
 
                 let start = document.createElement("button");
@@ -267,26 +604,42 @@
                 start.addEventListener("click", Snake_Game);
                 document.body.appendChild(start);
             });
-            document.body.appendChild(nextGame);
+            result.appendChild(nextGame);
         }
         else {
             let Check_Result = document.createElement("button");
             Check_Result.innerText = "Check Result";
             Check_Result.addEventListener("click", TheEnd);
-            document.body.appendChild(Check_Result);
+            result.appendChild(Check_Result);
         }
+        document.body.appendChild(result);
     }
+
     function TheEnd() {
         document.body.innerHTML = "";
-        let finalMessage = document.createElement("p");
+
+        let result = document.createElement("div");
+        result.classList.add("result");
+
+        let finalMessage = document.createElement("div");
+        finalMessage.classList.add("result-title");
         finalMessage.innerText = "Final Result!!!!!";
-        document.body.appendChild(finalMessage);
+
+        result.appendChild(finalMessage);
 
         for (let i = 1; i <= playerNumber; i++) {
             let this_player = document.createElement("p");
-            this_player.innerText = "Player " + i + ", " + playerData[i - 1].name + " has scored " + playerScore[i - 1] + " points";
-            document.body.appendChild(this_player);
+            this_player.innerText =
+                "Player " +
+                i +
+                ", " +
+                playerData[i - 1].name +
+                " has scored " +
+                playerScore[i - 1] +
+                " points";
+            result.appendChild(this_player);
         }
+        document.body.appendChild(result);
     }
 </script>
 
